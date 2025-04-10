@@ -11,23 +11,19 @@ parser.add_argument('--date-delta', type=int, required=True, help='Kolik dni dop
 parser.add_argument('--level', type=str, required=True, help='Uroven zavodu k procesovani dle oris API - seznam oddeleny carkou, napr: "1,2,3,7,8,9"')
 parser.add_argument('--discord-webhook', type=str,  help='Kompletni discord webhook URL')
 parser.add_argument('--email-recipients', type=lambda s: [email.strip() for email in s.split(',')], help='Carkou oddeleny list mailu (napr.: a@x.com,b@y.com)')
+parser.add_argument('--email-password', type=str, help='Heslo k mailu pro odeslani (app password)')
 
 args = parser.parse_args()
 DISCORD_WEBHOOK_URL = args.discord_webhook
 DATE_DELTA = args.date_delta
 RECIPIENTS = args.email_recipients
 LEVEL = args.level
+PASS = args.email_password
 
 #Default setup
 ORIS_API_URL = "https://oris.orientacnisporty.cz/API/"
 CLUB_ID = "205"  # SK Brno Žabovřesky
 
-# Testing override
-#LEVEL = "4"
-#DATE_DELTA = 7
-#DISCORD_WEBHOOK_URL = ""  # Replace with your actual webhook
-
-#Get 
 def get_unpaid_summary_for_club():
     """Fetch unpaid race fees and summarize for club 205."""
     now = datetime.now()
@@ -154,9 +150,8 @@ def prepare_email_message(races):
     return message
 
 def send_email(subject, body, to_email):
-    """Send an email with the provided subject, body, and recipient."""
-    from_email = "jan_zhanal@centrum.cz"  # Replace with your email
-    from_password = "31windows"  # Replace with your email password or app password
+    #Send an email with the provided subject, body, and recipient.
+    from_email = "platby-zavody@zabiny.club" 
     
     # Set up the MIME
     msg = MIMEMultipart()
@@ -166,12 +161,12 @@ def send_email(subject, body, to_email):
     
     # Add body content to the email
     msg.attach(MIMEText(body, 'plain'))
-    
+
     try:
         # Set up the SMTP server (using Gmail in this example)
-        server = smtplib.SMTP('smtp.centrum.cz', 587)  # Use the correct SMTP server for your email provider
+        server = smtplib.SMTP('smtp.gmail.com', 587)  # Use the correct SMTP server for your email provider
         server.starttls()  # Secure the connection
-        server.login(from_email, from_password)
+        server.login(from_email, PASS)
         
         # Send the email
         text = msg.as_string()
